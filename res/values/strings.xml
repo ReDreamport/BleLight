@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">MEMS</string>
+    <string name="btn_add_device">添加设备</string>
+    <string name="btn_light_on_all">开所有灯</string>
+    <string name="btn_light_off_all">关所有灯</string>
+    <string name="btn_start_scan">开始扫描</string>
+    <string name="btn_stop_scan">停止扫描</string>
+    <string name="btn_finish_add_device">完成</string>
+    <string name="change_led_name">修改名称</string>
+    <string name="led_name">灯的名称，如“厨房灯”</string>
+    <string name="btn_change_name">保存</string>
+    <string name="change_led_color">改变颜色</string>
+    <string name="remove_led">删除</string>
+    <string name="reconnect_device">重新连接</string>
+    <string name="device_details">设置</string>
+
+</resources>

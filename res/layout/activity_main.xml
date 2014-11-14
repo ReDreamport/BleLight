@@ -1,0 +1,47 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="org.mems.MainActivity" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/btn_add_device"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:onClick="addDevice"
+            android:text="@string/btn_add_device" />
+
+        <Button
+            android:id="@+id/btn_turn_on_all"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:onClick="turnOnAll"
+            android:text="@string/btn_light_on_all" />
+
+        <Button
+            android:id="@+id/btn_turn_off_all"
+            android:layout_width="0dp"
+            android:layout_height="80dp"
+            android:layout_weight="1"
+            android:onClick="turnOffAll"
+            android:text="@string/btn_light_off_all"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/device_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:layout_weight="1" >
+    </ListView>
+
+</LinearLayout>
