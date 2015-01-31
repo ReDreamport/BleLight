@@ -8,12 +8,16 @@
     <string name="btn_start_scan">开始扫描</string>
     <string name="btn_stop_scan">停止扫描</string>
     <string name="btn_finish_add_device">完成</string>
-    <string name="change_led_name">修改名称</string>
+    <string name="change_led_name">备注名</string>
     <string name="led_name">灯的名称，如“厨房灯”</string>
     <string name="btn_change_name">保存</string>
-    <string name="change_led_color">改变颜色</string>
-    <string name="remove_led">删除</string>
+    <string name="change_led_color">颜色</string>
+    <string name="change_led_brightness">亮度（暗 &lt;---&gt; 亮）</string>
+    <string name="remove_led">移除此灯</string>
     <string name="reconnect_device">重新连接</string>
     <string name="device_details">设置</string>
+    <string name="schedule_on">定时开</string>
+    <string name="schedule_off">定时关</string>
+    <string name="set_time">点击设置时间</string>
 
 </resources>

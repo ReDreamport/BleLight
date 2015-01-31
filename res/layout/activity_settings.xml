@@ -1,54 +1,142 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/change_led_color" />
-
-    <org.mems.ColorChooser
-        android:id="@+id/color_chooser"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scaleType="fitCenter"
-        android:src="@drawable/rgb" >
-    </org.mems.ColorChooser>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="@string/change_led_name" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <EditText
-            android:id="@+id/led_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.0"
-            android:hint="@string/led_name" />
+        android:orientation="vertical"
+        android:padding="10dp">
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:onClick="changeName"
-            android:text="@string/btn_change_name" >
-        </Button>
+            android:layout_marginTop="10dp"
+            android:onClick="removeLED"
+            android:layout_gravity="end"
+            android:text="@string/remove_led"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/change_led_brightness"/>
+
+        <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/bright_bar"
+            android:layout_marginBottom="30dp"
+            android:layout_marginTop="10dp"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/change_led_color"/>
+
+        <org.mems.ColorChooser
+            android:id="@+id/color_chooser"
+            android:layout_width="320dp"
+            android:layout_height="320dp"
+            android:scaleType="fitCenter"
+            android:layout_gravity="center"
+            android:src="@drawable/rgb"/>
+
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:text="@string/schedule_on"/>
+
+            <ImageButton
+                android:id="@+id/switch_schedule_on"
+                android:layout_width="100dp"
+                android:layout_height="37dp"
+                android:layout_gravity="end"
+                android:onClick="switchScheduleOn"
+                android:background="@drawable/light_status"
+                android:scaleType="fitCenter"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/set_time_on"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/set_time"
+            android:gravity="start|center_vertical"
+            android:onClick="setTimeOn"
+            style="?android:buttonBarButtonStyle"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:layout_marginTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:text="@string/schedule_off"/>
+
+            <ImageButton
+                android:id="@+id/switch_schedule_off"
+                android:layout_width="100dp"
+                android:layout_height="37dp"
+                android:layout_gravity="end"
+                android:onClick="switchScheduleOff"
+                android:background="@drawable/light_status"
+                android:scaleType="fitCenter"/>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/set_time_off"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/set_time"
+            android:gravity="start|center_vertical"
+            android:onClick="setTimeOff"
+            style="?android:buttonBarButtonStyle"
+            android:visibility="gone"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/change_led_name"/>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/led_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:hint="@string/led_name"/>
+
+            <Button
+                android:id="@+id/btn_save_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="changeName"
+                android:text="@string/btn_change_name"/>
+        </LinearLayout>
+
     </LinearLayout>
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:onClick="removeLED"
-        android:text="@string/remove_led" >
-    </Button>
-
-</LinearLayout>
+</ScrollView>

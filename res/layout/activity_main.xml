@@ -3,45 +3,47 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="org.mems.MainActivity" >
+    tools:context="org.mems.MainActivity"
+    android:background="@drawable/background">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:layout_height="50dp"
+        android:background="#66000012">
 
-        <Button
-            android:id="@+id/btn_add_device"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_weight="1"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:layout_centerInParent="true"
+            android:textSize="25sp"
+            android:textAlignment="center" />
+
+        <ImageButton
+            android:src="@drawable/add_device"
+            android:scaleType="fitCenter"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentEnd="true"
             android:onClick="addDevice"
-            android:text="@string/btn_add_device" />
+            style="?android:buttonBarButtonStyle" />
 
-        <Button
-            android:id="@+id/btn_turn_on_all"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_weight="1"
-            android:onClick="turnOnAll"
-            android:text="@string/btn_light_on_all" />
-
-        <Button
-            android:id="@+id/btn_turn_off_all"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_weight="1"
-            android:onClick="turnOffAll"
-            android:text="@string/btn_light_off_all"
-            android:visibility="gone" />
-    </LinearLayout>
+    </RelativeLayout>
 
     <ListView
         android:id="@+id/device_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="20dp"
-        android:layout_weight="1" >
-    </ListView>
+        android:layout_marginTop="0dp"
+        android:layout_weight="1" />
+
+    <ImageButton
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/switch_all_btn"
+        android:scaleType="fitCenter"
+        android:layout_gravity="center"
+        android:onClick="switchAll"
+        style="?android:buttonBarButtonStyle" />
 
 </LinearLayout>

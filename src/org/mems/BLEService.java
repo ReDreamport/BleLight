@@ -1,11 +1,6 @@
 package org.mems;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +36,7 @@ public class BLEService extends Service {
     private static final UUID SERVICE_LIGHT_UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb");
 
     private static final UUID CHARACTERISTIC_LIGHT_UUID = UUID.fromString("0000fff1-0000-1000-8000-00805f9b34fb");
+    private static final UUID CHARACTERISTIC_SCHEDULE_UUID = UUID.fromString("0000fff2-0000-1000-8000-00805f9b34fb");
 
     private static final String DEVICE_PREF = "DEVICE_PREF";
     // 保存已添加到列表中的所有设备地址
@@ -112,7 +108,7 @@ public class BLEService extends Service {
     public void addDevices(List<BluetoothDevice> devices) {
         for (BluetoothDevice device : devices) {
             BLEDeviceContext context = buildDeviceContext(device);
-            context.connect(); // TODO 延时，任务化？
+            context.connect(true); // TODO 延时，任务化？
         }
 
         persistUsedDevices();
@@ -124,6 +120,9 @@ public class BLEService extends Service {
     }
 
     private void persistUsedDevices() {
+        if (usedDeviceAddresses == null) {
+            return;
+        }
         usedDeviceAddresses.clear();
         usedDeviceAddresses.addAll(usedDevices.keySet());
         Log.i(LOG_TAG, "更新-已使用的设备地址：" + usedDeviceAddresses.toString());
@@ -168,7 +167,7 @@ public class BLEService extends Service {
     public void connectAllDevices() {
         for (BLEDeviceContext dc : usedDevices.values()) {
             // TODO 延时？
-            dc.connect();
+            dc.connect(true);
         }
     }
 
@@ -195,6 +194,7 @@ public class BLEService extends Service {
 
         private volatile BluetoothGatt gatt;
         private volatile BluetoothGattCharacteristic characteristicLight;
+        private volatile BluetoothGattCharacteristic characteristicSchedule;
 
         // 当前状态
         private volatile boolean lightOn = false;
@@ -206,28 +206,41 @@ public class BLEService extends Service {
         // TODO ？多个体设备使用一个回调还是多个回调
         private BluetoothGattCallback callback = new MyBluetoothGattCallback(this);
 
-        private void connect() {
+        private void connect(boolean usingExistedGatt) {
             BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
 
             int connectionState = bluetoothManager.getConnectionState(device, BluetoothProfile.GATT);
-            if (connectionState == BluetoothProfile.STATE_CONNECTED) {
-                Log.i(LOG_TAG, "connect: GATT already connected");
-                boolean result = gatt.discoverServices();
-                if (!result) {
-                    Log.e(LOG_TAG, "connect: discoverServices return false");
-                }
-                return;
-            }
 
-            if (gatt != null) {
-                Log.i(LOG_TAG, "connect: Connect using the existed connection");
-                boolean result = gatt.connect();
-                if (!result) {
-                    Log.e(LOG_TAG, "connect: connect return false");
+            if (!usingExistedGatt) {
+                Log.i(LOG_TAG, "connect: forced to use a new one");
+                if (gatt != null) {
+                    gatt.disconnect();
+                    close();
                 }
-            } else {
-                Log.i(LOG_TAG, "connect: Create a new GATT connection");
+                // create a new one
                 gatt = device.connectGatt(BLEService.this, false, callback);
+            } else {
+                if (connectionState == BluetoothProfile.STATE_CONNECTED) {
+                    Log.i(LOG_TAG, "connect: GATT already connected");
+                    boolean result = gatt.discoverServices();
+                    if (!result) {
+                        Log.e(LOG_TAG, "connect: discoverServices return false");
+                    }
+                    return;
+                } else if (connectionState == BluetoothProfile.STATE_CONNECTING) {
+                    Log.i(LOG_TAG, "connect: GATT connecting, waiting...");
+                }
+
+                if (gatt != null) {
+                    Log.i(LOG_TAG, "connect: Connect using the existed connection");
+                    boolean result = gatt.connect();
+                    if (!result) {
+                        Log.e(LOG_TAG, "connect: connect return false");
+                    }
+                } else {
+                    Log.i(LOG_TAG, "connect: Create a new GATT connection");
+                    gatt = device.connectGatt(BLEService.this, false, callback);
+                }
             }
         }
 
@@ -245,7 +258,7 @@ public class BLEService extends Service {
         }
 
         public void reconnect() {
-            connect();
+            connect(false);
         }
 
         private void close() {
@@ -269,6 +282,11 @@ public class BLEService extends Service {
                 Log.e(LOG_TAG, "setCharacteristics: cannot find characteristic" + CHARACTERISTIC_LIGHT_UUID);
             }
             Log.i(LOG_TAG, "发现特征值" + CHARACTERISTIC_LIGHT_UUID);
+            characteristicSchedule = service.getCharacteristic(CHARACTERISTIC_SCHEDULE_UUID);
+            if (characteristicSchedule == null) {
+                Log.e(LOG_TAG, "setCharacteristics: cannot find characteristic" + CHARACTERISTIC_SCHEDULE_UUID);
+            }
+            Log.i(LOG_TAG, "发现特征值" + CHARACTERISTIC_SCHEDULE_UUID);
         }
 
         public void changeColor(int color) {
@@ -276,28 +294,99 @@ public class BLEService extends Service {
                 return;
             }
 
-            Log.i(LOG_TAG, "改变颜色:" + Integer.toHexString(color));
             red = (byte) Color.red(color);
             green = (byte) Color.green(color);
             blue = (byte) Color.blue(color);
+            Log.i(LOG_TAG, "改变颜色" + Integer.toHexString(red) + " " + Integer.toHexString(green) + " " + Integer.toHexString(blue));
 
-            byte[] value = new byte[] { red, green, blue, (byte) 0x00, (byte) 0x64 };
+            byte[] value = new byte[]{blue, green, red, (byte) 0x00, (byte) 0x64};
             readWriteWorker.submit(new Task(value, characteristicLight, gatt));
         }
 
         public void changeStatus(boolean on) {
-            if (characteristicLight == null) {
+            if (busy || characteristicLight == null) {
                 return;
             }
 
             lightOn = on;
             Log.i(LOG_TAG, on ? "准备亮灯" : "准备灭灯");
-            byte[] value = new byte[] { red, green, blue, (byte) 0x00, on ? (byte) 0x64 : (byte) 0x00 };
+            byte[] value = new byte[]{blue, green, red, (byte) 0x00, on ? (byte) 0x64 : (byte) 0x00};
             readWriteWorker.submit(new Task(value, characteristicLight, gatt));
         }
 
         public void toggle() {
             changeStatus(!lightOn);
+        }
+
+        public void changeBright(int progress) {
+            if (busy || characteristicLight == null) {
+                return;
+            }
+            int color = ColorTools.restoreColor(progress, red, green, blue);
+            red = (byte) Color.red(color);
+            green = (byte) Color.green(color);
+            blue = (byte) Color.blue(color);
+            byte[] value = new byte[]{blue, green, red, (byte) 0x00, (byte) 0x64};
+
+            readWriteWorker.submit(new Task(value, characteristicLight, gatt));
+        }
+
+        public void stopScheduleOn() {
+            if (busy || characteristicLight == null) {
+                return;
+            }
+            byte[] value = new byte[]{0x00, 0x00, 0x01};
+            readWriteWorker.submit(new Task(value, characteristicSchedule, gatt));
+        }
+
+        public void stopScheduleOff() {
+            if (busy || characteristicLight == null) {
+                return;
+            }
+            byte[] value = new byte[]{0x00, 0x00, 0x00};
+            readWriteWorker.submit(new Task(value, characteristicSchedule, gatt));
+        }
+
+        public void startScheduleOn(int hourOfDay, int minute) {
+            if (busy || characteristicLight == null) {
+                return;
+            }
+            Calendar c = new GregorianCalendar();
+            c.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            c.set(Calendar.MINUTE, minute);
+
+            Calendar now = new GregorianCalendar();
+            if (c.before(now)) {
+                c.set(Calendar.DATE, c.get(Calendar.DATE) + 1);
+            }
+            long minutes = (c.getTimeInMillis() - now.getTimeInMillis()) / 1000 / 60 % (60 * 24);
+            Log.i(LOG_TAG, "时间差（分）" + minutes);
+            int h = (int) minutes / 60;
+            int m = (int) minutes % 60;
+
+            byte[] value = new byte[]{(byte) h, (byte) m, 0x01};
+            readWriteWorker.submit(new Task(value, characteristicSchedule, gatt));
+        }
+
+        public void startScheduleOff(int hourOfDay, int minute) {
+            if (busy || characteristicLight == null) {
+                return;
+            }
+            Calendar c = new GregorianCalendar();
+            c.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            c.set(Calendar.MINUTE, minute);
+
+            Calendar now = new GregorianCalendar();
+            if (c.before(now)) {
+                c.set(Calendar.DATE, c.get(Calendar.DATE) + 1);
+            }
+            long minutes = (c.getTimeInMillis() - now.getTimeInMillis()) / 1000 / 60 % (60 * 24);
+            Log.i(LOG_TAG, "时间差（分）" + minutes);
+            int h = (int) minutes / 60;
+            int m = (int) minutes % 60;
+
+            byte[] value = new byte[]{(byte) h, (byte) m, 0x00};
+            readWriteWorker.submit(new Task(value, characteristicSchedule, gatt));
         }
     }
 
@@ -390,9 +479,9 @@ public class BLEService extends Service {
 
             busy = false;
             sendBroadcast(intent);
-        };
+        }
 
-    };
+    }
 
     private class Task implements Runnable {
 

@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import android.view.Window;
+import android.widget.*;
 import org.mems.BLEService.BLEDeviceContext;
 import org.mems.BLEService.LocalBinder;
 
@@ -30,10 +32,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -54,6 +52,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
         deviceList = (ListView) findViewById(R.id.device_list);
@@ -159,22 +158,16 @@ public class MainActivity extends Activity {
         showDialog(DIALOG_ID_PROGRESS);
     }
 
-    public void turnOnAll(View view) {
-        Map<String, BLEDeviceContext> devices = bleService.getUsedDevices();
-        for (BLEDeviceContext d : devices.values()) {
-            d.changeStatus(true);
-        }
-        view.setVisibility(View.GONE);
-        findViewById(R.id.btn_turn_off_all).setVisibility(View.VISIBLE);
-    }
+    public void switchAll(View view) {
+        ImageButton btn = (ImageButton) view;
 
-    public void turnOffAll(View view) {
+        btn.setActivated(!btn.isActivated());
+
         Map<String, BLEDeviceContext> devices = bleService.getUsedDevices();
         for (BLEDeviceContext d : devices.values()) {
-            d.changeStatus(false);
+            d.changeStatus(btn.isActivated());
         }
-        view.setVisibility(View.GONE);
-        findViewById(R.id.btn_turn_on_all).setVisibility(View.VISIBLE);
+
     }
 
     public void reconnect(View view) {
@@ -193,18 +186,21 @@ public class MainActivity extends Activity {
     public void changeStatus(View view) {
         String address = (String) ((View) view.getParent()).getTag();
         BLEDeviceContext device = bleService.getUsedDevices().get(address);
-        device.toggle();
+
+        ImageButton btn = (ImageButton) view;
+        device.changeStatus(!btn.isActivated());
+        btn.setActivated(!btn.isActivated());
     }
 
     @Override
     protected Dialog onCreateDialog(int id, Bundle args) {
         switch (id) {
-        case DIALOG_ID_PROGRESS:
-            ProgressDialog dialog = new ProgressDialog(this);
-            dialog.setMessage("正在扫描设备请稍后...");
-            dialog.setIndeterminate(true);
-            dialog.setCancelable(false);
-            return dialog;
+            case DIALOG_ID_PROGRESS:
+                ProgressDialog dialog = new ProgressDialog(this);
+                dialog.setMessage("正在扫描设备请稍后...");
+                dialog.setIndeterminate(true);
+                dialog.setCancelable(false);
+                return dialog;
         }
         return null;
     }
@@ -274,14 +270,11 @@ public class MainActivity extends Activity {
 
             BLEDeviceContext item = getItem(position);
 
-            view.setBackgroundColor(Color.rgb(item.red, item.green, item.blue));
+            // view.setBackgroundColor(Color.rgb(item.red, item.green, item.blue));
 
             TextView nameView = (TextView) view.findViewById(R.id.device_name);
             nameView.setText(item.name);
             String status = item.usable ? "可以控制" : item.connected ? "已连接" : "未连接";
-            TextView statusView = (TextView) view.findViewById(R.id.device_status);
-            statusView.setText(status);
-
             view.setTag(item.address);
             return view;
         }
